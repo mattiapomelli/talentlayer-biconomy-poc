@@ -61,21 +61,6 @@ const Home = () => {
   const onDeposit = async () => {
     if (!lockContract || !smartAccount) return;
 
-    // const tx = await lockContract.populateTransaction.deposit({ value: 100 });
-    // console.log(">>> TXN: ", tx);
-    // const { data, value, to } = tx;
-
-    // transfer ERC-20 tokens to recipient
-    const contractInterface = new ethers.utils.Interface([
-      "function deposit() public payable",
-    ]);
-
-    const tx = {
-      to: lockContract.address,
-      data: contractInterface.encodeFunctionData("deposit", []),
-      value: BigNumber.from(100),
-    };
-
     smartAccount.on("txHashGenerated", (response: any) => {
       console.log(">>> txHashGenerated event received via emitter", response);
     });
@@ -88,8 +73,14 @@ const Home = () => {
       console.log(">>> error event received via emitter", response);
     });
 
+    const tx = await lockContract.populateTransaction.deposit({ value: 100 });
+    const { to, ...rest } = tx;
+
     const txResponse = await smartAccount.sendGasLessTransaction({
-      transaction: tx,
+      transaction: {
+        to: to || "",
+        ...rest,
+      },
     });
 
     console.log("Transaction hash", txResponse.hash);
