@@ -73,13 +73,16 @@ const Home = () => {
       console.log(">>> error event received via emitter", response);
     });
 
-    const tx = await lockContract.populateTransaction.deposit({ value: 100 });
-    const { to, ...rest } = tx;
+    const tx = await lockContract.populateTransaction.deposit({
+      value: ethers.utils.parseEther("0.0000000000000001"),
+    });
+    const { data, value, to } = tx;
 
     const txResponse = await smartAccount.sendGasLessTransaction({
       transaction: {
         to: to || "",
-        ...rest,
+        data,
+        value,
       },
     });
 
