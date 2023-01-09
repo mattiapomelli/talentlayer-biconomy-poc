@@ -6,8 +6,10 @@ import { ChainId, SmartAccountConfig } from "@biconomy/core-types";
 import SmartAccount from "@biconomy/smart-account";
 import { useAccount, useProvider, useSigner } from "wagmi";
 import { Erc20Abi } from "../abis/erc20";
+import { LockAbi } from "../abis/lock";
 
 const tokenAddress = "0xC2C527C0CACF457746Bd31B2a698Fe89de2b6d49";
+const lockAddress = "0xB634C3122f8385C42ff997d135bDED281819Ab3A";
 
 const options: Partial<SmartAccountConfig> = {
   activeNetworkId: ChainId.GOERLI,
@@ -103,9 +105,6 @@ const Home = () => {
       signer.provider
     );
 
-    console.log("AA single txn");
-    console.log("smartAccount.address ", smartAccount.address);
-
     const approveTx = await usdcContract.populateTransaction.approve(
       "0x498c3DdbEe3528FB6f785AC150C9aDb88C7d372c",
       BigNumber.from("1000000"),
@@ -116,6 +115,34 @@ const Home = () => {
     const tx = {
       to: tokenAddress,
       data: approveTx.data,
+    };
+
+    console.log("Tx: ", tx);
+
+    const txResponse = await smartAccount.sendGaslessTransaction({
+      transaction: tx,
+    });
+    console.log("tx response");
+    console.log(txResponse.hash);
+  };
+
+  const onDeposit = async () => {
+    if (!smartAccount || !signer) return;
+
+    const lockContract = new ethers.Contract(
+      lockAddress,
+      LockAbi,
+      signer.provider
+    );
+
+    const depositTx = await lockContract.populateTransaction.deposit({
+      value: ethers.utils.parseEther("0.00001"),
+    });
+
+    const tx = {
+      to: lockAddress,
+      data: depositTx.data,
+      value: ethers.utils.parseEther("0.00001"),
     };
 
     console.log("Tx: ", tx);
@@ -145,6 +172,9 @@ const Home = () => {
           </button>
           <button className={styles.button} onClick={onApprove}>
             Approve
+          </button>
+          <button className={styles.button} onClick={onDeposit}>
+            Deposit
           </button>
         </div>
       </main>
