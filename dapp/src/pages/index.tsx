@@ -1,11 +1,10 @@
 import styles from "../styles/Home.module.css";
 import { useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { BigNumber, ethers, providers } from "ethers";
+import { ethers, providers } from "ethers";
 import { ChainId, SmartAccountConfig } from "@biconomy/core-types";
 import SmartAccount from "@biconomy/smart-account";
-import { useAccount, useProvider, useSigner } from "wagmi";
-import { Erc20Abi } from "../abis/erc20";
+import { useAccount, useSigner } from "wagmi";
 import { LockAbi } from "../abis/lock";
 
 const tokenAddress = "0xC2C527C0CACF457746Bd31B2a698Fe89de2b6d49";
@@ -96,36 +95,6 @@ const Home = () => {
     console.log(">>> tx receipt", receipt);
   };
 
-  const onApprove = async () => {
-    if (!smartAccount || !signer) return;
-
-    const usdcContract = new ethers.Contract(
-      tokenAddress,
-      Erc20Abi,
-      signer.provider
-    );
-
-    const approveTx = await usdcContract.populateTransaction.approve(
-      "0x498c3DdbEe3528FB6f785AC150C9aDb88C7d372c",
-      BigNumber.from("1000000"),
-      { from: smartAccount.address }
-    );
-    console.log(approveTx.data);
-
-    const tx = {
-      to: tokenAddress,
-      data: approveTx.data,
-    };
-
-    console.log("Tx: ", tx);
-
-    const txResponse = await smartAccount.sendGaslessTransaction({
-      transaction: tx,
-    });
-    console.log("tx response");
-    console.log(txResponse.hash);
-  };
-
   const onDeposit = async () => {
     if (!smartAccount || !signer) return;
 
@@ -169,9 +138,6 @@ const Home = () => {
         <div className={styles.buttonContainer}>
           <button className={styles.button} onClick={onTransfer}>
             Transfer
-          </button>
-          <button className={styles.button} onClick={onApprove}>
-            Approve
           </button>
           <button className={styles.button} onClick={onDeposit}>
             Deposit
