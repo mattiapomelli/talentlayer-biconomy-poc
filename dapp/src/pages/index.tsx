@@ -1,10 +1,13 @@
 import styles from "../styles/Home.module.css";
 import { useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { ethers, providers } from "ethers";
+import { BigNumber, ethers, providers } from "ethers";
 import { ChainId, SmartAccountConfig } from "@biconomy/core-types";
 import SmartAccount from "@biconomy/smart-account";
 import { useAccount, useProvider, useSigner } from "wagmi";
+import { Erc20Abi } from "../abis/erc20";
+
+const tokenAddress = "0xC2C527C0CACF457746Bd31B2a698Fe89de2b6d49";
 
 const options: Partial<SmartAccountConfig> = {
   activeNetworkId: ChainId.GOERLI,
@@ -28,7 +31,7 @@ const Home = () => {
 
     const setupSmartAccount = async () => {
       const walletProvider = new providers.Web3Provider(
-        (signer?.provider as providers.Web3Provider).provider
+        (signer.provider as providers.Web3Provider).provider
       );
 
       const smartAccount = new SmartAccount(walletProvider, options);
@@ -40,10 +43,9 @@ const Home = () => {
     setupSmartAccount();
   }, [address, signer?.provider]);
 
-  const onDeposit = async () => {
+  const onTransfer = async () => {
     if (!smartAccount) return;
 
-    const tokenAddress = "0xC2C527C0CACF457746Bd31B2a698Fe89de2b6d49";
     const recipientAddress = "0x498c3DdbEe3528FB6f785AC150C9aDb88C7d372c";
 
     // One needs to prepare the transaction data
@@ -92,6 +94,39 @@ const Home = () => {
     console.log(">>> tx receipt", receipt);
   };
 
+  const onApprove = async () => {
+    if (!smartAccount || !signer) return;
+
+    const usdcContract = new ethers.Contract(
+      tokenAddress,
+      Erc20Abi,
+      signer.provider
+    );
+
+    console.log("AA single txn");
+    console.log("smartAccount.address ", smartAccount.address);
+
+    const approveTx = await usdcContract.populateTransaction.approve(
+      "0x498c3DdbEe3528FB6f785AC150C9aDb88C7d372c",
+      BigNumber.from("1000000"),
+      { from: smartAccount.address }
+    );
+    console.log(approveTx.data);
+
+    const tx = {
+      to: tokenAddress,
+      data: approveTx.data,
+    };
+
+    console.log("Tx: ", tx);
+
+    const txResponse = await smartAccount.sendGaslessTransaction({
+      transaction: tx,
+    });
+    console.log("tx response");
+    console.log(txResponse.hash);
+  };
+
   return (
     <div className={styles.container}>
       <main className={styles.main}>
@@ -104,9 +139,12 @@ const Home = () => {
             <p>{smartAccount.address}</p>
           </div>
         )}
-        <div>
-          <button className={styles.button} onClick={onDeposit}>
-            Call
+        <div className={styles.buttonContainer}>
+          <button className={styles.button} onClick={onTransfer}>
+            Transfer
+          </button>
+          <button className={styles.button} onClick={onApprove}>
+            Approve
           </button>
         </div>
       </main>
