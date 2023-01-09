@@ -11,3 +11,20 @@
   justify-content: center;
   align-items: center;
 }
+
+.button {
+  background-color: #0070f3;
+  border: 1px solid #0070f3;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1;
+  margin: 0;
+  padding: 1.2rem 2.4rem;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
