@@ -4,6 +4,7 @@ import type { AppProps } from "next/app";
 import { RainbowKitProvider, getDefaultWallets } from "@rainbow-me/rainbowkit";
 import { chain, configureChains, createClient, WagmiConfig } from "wagmi";
 import { publicProvider } from "wagmi/providers/public";
+import { SmartAccountProvider } from "../contexts/smart-account-context";
 
 const { chains, provider, webSocketProvider } = configureChains(
   [chain.goerli],
@@ -26,7 +27,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig client={wagmiClient}>
       <RainbowKitProvider chains={chains} coolMode>
-        <Component {...pageProps} />
+        <SmartAccountProvider>
+          <Component {...pageProps} />
+        </SmartAccountProvider>
       </RainbowKitProvider>
     </WagmiConfig>
   );

@@ -1,48 +1,18 @@
 import styles from "../styles/Home.module.css";
-import { useEffect, useState } from "react";
+
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { ethers, providers } from "ethers";
-import { ChainId, SmartAccountConfig } from "@biconomy/core-types";
-import SmartAccount from "@biconomy/smart-account";
-import { useAccount, useSigner } from "wagmi";
+import { ethers } from "ethers";
+import { useSigner } from "wagmi";
 import { LockAbi } from "../abis/lock";
+import { useSmartAccount } from "../contexts/smart-account-context";
 
 const tokenAddress = "0xC2C527C0CACF457746Bd31B2a698Fe89de2b6d49";
 const lockAddress = "0xB634C3122f8385C42ff997d135bDED281819Ab3A";
 
-const options: Partial<SmartAccountConfig> = {
-  activeNetworkId: ChainId.GOERLI,
-  supportedNetworksIds: [ChainId.GOERLI],
-  networkConfig: [
-    {
-      chainId: ChainId.GOERLI,
-      dappAPIKey: process.env.NEXT_PUBLIC_BICONOMY_DAPP_API_KEY,
-    },
-  ],
-};
-
 const Home = () => {
   const { data: signer } = useSigner();
-  const { address } = useAccount();
 
-  const [smartAccount, setSmartAccount] = useState<SmartAccount | null>(null);
-
-  useEffect(() => {
-    if (!signer?.provider || !address) return;
-
-    const setupSmartAccount = async () => {
-      const walletProvider = new providers.Web3Provider(
-        (signer.provider as providers.Web3Provider).provider
-      );
-
-      const smartAccount = new SmartAccount(walletProvider, options);
-      await smartAccount.init();
-
-      setSmartAccount(smartAccount);
-    };
-
-    setupSmartAccount();
-  }, [address, signer?.provider]);
+  const { smartAccount, loading } = useSmartAccount();
 
   const onTransfer = async () => {
     if (!smartAccount) return;
@@ -129,12 +99,19 @@ const Home = () => {
         <h1>Biconomy SDK Next.js Rainbow Example</h1>
         <ConnectButton />
 
-        {smartAccount && (
-          <div>
-            <h2>Smart Account Address</h2>
-            <p>{smartAccount.address}</p>
-          </div>
+        {loading ? (
+          <div>Loading...</div>
+        ) : (
+          <>
+            {smartAccount && (
+              <div>
+                <h2>Smart Account Address</h2>
+                <p>{smartAccount.address}</p>
+              </div>
+            )}
+          </>
         )}
+
         <div className={styles.buttonContainer}>
           <button className={styles.button} onClick={onTransfer}>
             Transfer
