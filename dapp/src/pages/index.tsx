@@ -1,103 +1,73 @@
 import styles from "../styles/Home.module.css";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { ethers } from "ethers";
-import { useSigner } from "wagmi";
-import { LockAbi } from "../abis/lock";
+import { Contract } from "ethers";
+import { useAccount, useSigner } from "wagmi";
 import { useSmartAccount } from "../contexts/smart-account-context";
+import { SimpleTalentLayerIdAbi } from "../abis/simple-talent-layer-id";
+import { useEffect, useState } from "react";
 
-const tokenAddress = "0xC2C527C0CACF457746Bd31B2a698Fe89de2b6d49";
-const lockAddress = "0xB634C3122f8385C42ff997d135bDED281819Ab3A";
+const simpleTalentLayerIdAddress = "0x1c9F590C75C0AcBA1C12AD8eB58368D9777461F0";
 
 const Home = () => {
   const { data: signer } = useSigner();
+  const { address } = useAccount();
 
   const { smartAccount, loading } = useSmartAccount();
+  const [handle, setHandle] = useState("");
 
-  const onTransfer = async () => {
-    if (!smartAccount) return;
+  useEffect(() => {
+    if (!signer || !smartAccount) return;
 
-    const recipientAddress = "0x498c3DdbEe3528FB6f785AC150C9aDb88C7d372c";
+    const getHandle = async () => {
+      const simpleTalentLayerId = new Contract(
+        simpleTalentLayerIdAddress,
+        SimpleTalentLayerIdAbi,
+        signer.provider
+      );
 
-    // One needs to prepare the transaction data
-    // Here we will be transferring ERC 20 tokens from the Smart Contract Wallet to an address
-    const erc20Interface = new ethers.utils.Interface([
-      "function transfer(address _to, uint256 _value)",
-    ]);
-
-    // Encode an ERC-20 token transfer to recipientAddress of the specified amount
-    const encodedData = erc20Interface.encodeFunctionData("transfer", [
-      recipientAddress,
-      1 * 10 ** 6,
-    ]);
-
-    // You need to create transaction objects of the following interface
-    const tx = {
-      to: tokenAddress, // destination smart contract address
-      data: encodedData,
+      const handle = await simpleTalentLayerId.handles(smartAccount.address);
+      setHandle(handle);
     };
 
-    // Optional: Transaction subscription. One can subscribe to various transaction states
-    // Event listener that gets triggered once a hash is generetaed
-    smartAccount.on("txHashGenerated", (response: any) => {
-      console.log(">>> txHashGenerated event received via emitter", response);
-    });
-    smartAccount.on("onHashChanged", (response: any) => {
-      console.log(">>> onHashChanged event received via emitter", response);
-    });
-    // Event listener that gets triggered once a transaction is mined
-    smartAccount.on("txMined", (response: any) => {
-      console.log(">>> txMined event received via emitter", response);
-    });
-    // Event listener that gets triggered on any error
-    smartAccount.on("error", (response: any) => {
-      console.log(">>> error event received via emitter", response);
-    });
+    getHandle();
+  }, [smartAccount, signer, address]);
 
-    // Sending gasless transaction
-    const txResponse = await smartAccount.sendGaslessTransaction({
-      transaction: tx,
-    });
-    console.log(">>> tx hash generated", txResponse.hash);
-
-    // If you do not subscribe to listener, one can also get the receipt like shown below
-    const receipt = await txResponse.wait();
-    console.log(">>> tx receipt", receipt);
-  };
-
-  const onDeposit = async () => {
+  const onMint = async () => {
     if (!smartAccount || !signer) return;
 
-    const lockContract = new ethers.Contract(
-      lockAddress,
-      LockAbi,
+    const simpleTalentLayerId = new Contract(
+      simpleTalentLayerIdAddress,
+      SimpleTalentLayerIdAbi,
       signer.provider
     );
 
-    const depositTx = await lockContract.populateTransaction.deposit({
-      value: ethers.utils.parseEther("0.00001"),
+    const value = 100;
+    const mintTx = await simpleTalentLayerId.populateTransaction.mint("frank", {
+      value,
     });
 
     const tx = {
-      to: lockAddress,
-      data: depositTx.data,
-      value: ethers.utils.parseEther("0.00001"),
+      to: simpleTalentLayerIdAddress,
+      data: mintTx.data,
+      value,
     };
-
-    console.log("Tx: ", tx);
 
     const txResponse = await smartAccount.sendGaslessTransaction({
       transaction: tx,
     });
-    console.log("tx response");
-    console.log(txResponse.hash);
+
+    console.log("Txn hash: ", txResponse.hash);
   };
 
   return (
     <div className={styles.container}>
       <main className={styles.main}>
-        <h1>Biconomy SDK Next.js Rainbow Example</h1>
+        <h1>Biconomy New SDK Example</h1>
+
         <ConnectButton />
+
+        <div className={styles.handleContainer}>Handle: {handle}</div>
 
         {loading ? (
           <div>Loading...</div>
@@ -113,11 +83,8 @@ const Home = () => {
         )}
 
         <div className={styles.buttonContainer}>
-          <button className={styles.button} onClick={onTransfer}>
-            Transfer
-          </button>
-          <button className={styles.button} onClick={onDeposit}>
-            Deposit
+          <button className={styles.button} onClick={onMint}>
+            Mint
           </button>
         </div>
       </main>

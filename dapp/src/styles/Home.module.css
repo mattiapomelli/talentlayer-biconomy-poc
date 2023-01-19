@@ -36,3 +36,8 @@
   text-decoration: none;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
+
+.handleContainer {
+  margin-top: 2rem;
+  font-size: 1.2rem;
+}

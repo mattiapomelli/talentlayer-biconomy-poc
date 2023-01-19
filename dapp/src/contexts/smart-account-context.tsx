@@ -47,8 +47,6 @@ export const SmartAccountProvider = ({ children }: any) => {
 
         setSmartAccount(smartAccount);
 
-        console.log("Smart account: ", smartAccount);
-
         smartAccount.on("txHashGenerated", (response: any) => {
           console.log("txHashGenerated event received via emitter", response);
         });
