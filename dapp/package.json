@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@biconomy/core-types": "^1.0.0",
+    "@biconomy/mexa": "^3.0.5",
     "@biconomy/smart-account": "^1.0.0",
     "@rainbow-me/rainbowkit": "^0.8.0",
     "@types/node": "18.11.9",
