@@ -1,12 +1,16 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy();
+  const SimpleTalentLayerID = await ethers.getContractFactory(
+    "SimpleTalentLayerID"
+  );
+  const simpleTalentLayerID = await SimpleTalentLayerID.deploy();
 
-  await lock.deployed();
+  await simpleTalentLayerID.deployed();
 
-  console.log(`Deployed Lock at: ${lock.address}`);
+  console.log(
+    `Deployed SimpleTalentLayerID at: ${simpleTalentLayerID.address}`
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere
